@@ -24,9 +24,48 @@ commit;
 
 
 
+-- ========================================================================
+-- web계정에서 kh 계정의 일부테이블 사용하기
+-- ========================================================================
+select * from kh.employee;
+select * from kh.department;
+select * from kh.job;
+
+-- =========kh계정 권한부여=============
+--grant all on kh.employee to web;
+--grant select on kh.department to web;
+--grant select on kh.job to web;
 
 
+-- synonym 동의어객체
+-- 별칭객체
+-- create synonym은 resource롤에 포함되지 않는 권한
+create synonym emp for kh.employee;
+create synonym dept for kh.department;
+create synonym job for kh.job;
 
+-- =========system계정 권한부여=============
+--grant create synonym to web;
 
+-- 조회
+select * from emp;
+select * from dept;
+select * from job;
 
+--commit;
 
+select
+    *
+from(
+    select
+        emp.*,
+        (select job_name from job where job_code = emp.job_code) job_name,
+        (select dept_title from dept where dept_id = emp.dept_code) dept_title,
+        decode(substr(emp_no, 8, 1), '1', '남', '3', '남', '여') gender
+    from
+        emp
+)
+where
+    job_code in ('J2', 'J3', 'J4')
+    and
+    dept_code in ('D3', 'D4', 'D5');

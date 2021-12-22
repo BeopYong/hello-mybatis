@@ -14,6 +14,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.kh.emp.model.dao.EmpDaoImpl;
+import com.kh.emp.model.service.EmpService;
+import com.kh.emp.model.service.EmpServiceImpl;
 import com.kh.student.model.dao.IStudentDao;
 import com.kh.student.model.dao.StudentDao;
 import com.kh.student.model.service.IStudentService;
@@ -39,6 +42,9 @@ public class DispatcherServlet extends HttpServlet {
     	IStudentService studentService = new StudentService(studentDao); // 의존 주입
     	
     	
+    	EmpService empService = new EmpServiceImpl(new EmpDaoImpl()); // 의존 주입
+    	
+    	
     	// 1. url-command.properties --> Properties객체
     	Properties prop = new Properties();
     	String filepath = DispatcherServlet.class.getResource("/url-command.properties").getPath();
@@ -49,14 +55,24 @@ public class DispatcherServlet extends HttpServlet {
     	Set<String> urlSet = prop.stringPropertyNames();
     	for(String url : urlSet) {
     		String className = prop.getProperty(url); // controller class fullName
-    		System.out.println("[디스패처서블릿] className = " + className); // properties의 url
-    		
-    		// reflection api
     		Class<?> clz = Class.forName(className);
-    		Class<?>[] param = {IStudentService.class}; // 생성자인자로 전달될 타입
-    		Constructor<?> constructor = clz.getDeclaredConstructor(param); // 파라미터생성자
-    		Object[] args = {studentService};
-    		AbstractController controller = (AbstractController) constructor.newInstance(args);
+    		System.out.println("[디스패처서블릿] className = " + className); // properties의 url
+
+    		// reflection api
+    		Class<?>[] param = new Class<?>[1];
+    		Object[] args = new Object[1];
+    		
+    		if(url.startsWith("/student")) {
+    			param[0] = IStudentService.class; // 생성자인자로 전달될 타입
+    			args[0] = studentService; 		// 생성자 호출시 전달한 인자
+    		}
+    		else if(url.startsWith("/emp")) {
+    			param[0] = EmpService.class; // 생성자인자로 전달될 타입
+    			args[0] = empService; 		// 생성자 호출시 전달한 인자
+    		}
+    		
+    		Constructor<?> constructor = clz.getDeclaredConstructor(param); // 생성자 가져오기
+    		AbstractController controller = (AbstractController) constructor.newInstance(args); // 생성자 호출
     		urlCommandMap.put(url, controller);
     	}
     	System.out.println("[디스패처서블릿] urlCommandMap = " + urlCommandMap);

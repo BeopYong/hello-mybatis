@@ -121,12 +121,13 @@ $(document.selectOneStudentFrm).submit((e) => {
 	const no = $("[name=no]", e.target).val();
  	if(!Number(no)) return;
 	$.ajax({
-		url: "${pageContext.request.contextPath}/student/selectOneStudent.do",
+//		url: "${pageContext.request.contextPath}/student/selectOneStudent.do",
+		url: "${pageContext.request.contextPath}/student/selectOneStudentMap.do",
 		data: {no},
 		success(res){
 			console.log(res);
 			if(res == null){
-				alert(`\${no}번 학생은 존재하지 않습니다.`);
+				alert(`해당 학생은 존재하지 않습니다.`); // 출력안됨.....해결 필요
 				return;
 			}
 			const {no, name, tel} = res;
